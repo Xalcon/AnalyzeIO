@@ -1,8 +1,7 @@
 package net.xalcon.analyzeio;
 
 import crazypants.enderio.ModObject;
-import crazypants.enderio.capacitor.CapacitorKey;
-import crazypants.enderio.capacitor.CapacitorKeyType;
+import crazypants.enderio.capacitor.*;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -13,6 +12,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 
 @Mod.EventBusSubscriber
@@ -33,26 +33,104 @@ public class ItemTooltipEventHandler
 		}
 
 		NBTTagCompound capNbt = itemNbt.getCompoundTag("eiocap");
-		event.getToolTip().add(I18n.format("analyzeio.lootcaps.level", capNbt.getInteger("level")));
+		int level = capNbt.getInteger("level");
+		event.getToolTip().add(I18n.format("analyzeio.lootcaps.level", level > 0 ? "§a"+level+"§r" : "§c"+level+"§r"));
+		ICapacitorData data = CapacitorHelper.getCapacitorDataFromItemStack(event.getItemStack());
+		if(level > 0)
+		{
+			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_buffer_base", formatBonus(CapacitorKeyType.ENERGY_BUFFER, Scaler.Factory.POWER.scaleValue(level))));
+			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_use_base", formatBonus(CapacitorKeyType.ENERGY_USE, Scaler.Factory.POWER.scaleValue(level))));
+			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_intake_base", formatBonus(CapacitorKeyType.ENERGY_INTAKE, Scaler.Factory.POWER.scaleValue(level))));
+		}
 		for(String key : capNbt.getKeySet())
 		{
 			if("level".equals(key)) continue;
 			if(key == null) continue;
 			CapacitorKey capKey = getCapKey(key);
-			float value = capNbt.getFloat(key);
+
 			if(capKey == null)
 			{
 				CapacitorKeyType keyType = getCapKeyType(key);
-				if(keyType != null)
-					event.getToolTip().add(I18n.format("analyzeio.lootcaps.all." + keyType.getName(), (int)(value * 100)));
-				else
-					event.getToolTip().add("UNKNOWN: " + key + " ("+value+")");
-				continue;
+				if(keyType == null) continue;
+				Scaler scaler = guessScalerFromCapKeyType(keyType);
+				if(scaler == null) continue;
+				float value = scaler.scaleValue(capNbt.getFloat(key));
+				event.getToolTip().add(I18n.format("analyzeio.lootcaps.all." + keyType.getName(), formatBonus(keyType, value)));
+			}
+			else
+			{
+				Scaler scaler = getScalerFromCapKey(capKey);
+				float value = Float.NaN;
+				if(scaler != null)
+					value = scaler.scaleValue(data.getUnscaledValue(capKey));
+				String ownerName = getLocalizedOwnerName(capKey.getOwner(), event.getItemStack());
+				event.getToolTip().add(I18n.format("analyzeio.lootcaps." + capKey.getValueType().getName(), ownerName, formatBonus(capKey.getValueType(), value)));
 			}
 
-			String ownerName = getLocalizedOwnerName(capKey.getOwner(), event.getItemStack());
-			event.getToolTip().add(I18n.format("analyzeio.lootcaps." + capKey.getValueType().getName(), ownerName, (int)(value * 100)));
+
 		}
+		if(level <= 0)
+		{
+			event.getToolTip().add(I18n.format("analyzeio.lootcaps.bonus_inactive"));
+		}
+	}
+
+	static Field scalerFieldAccessor = null;
+
+	private static String formatBonus(CapacitorKeyType keyType, float value)
+	{
+		if(Float.isNaN(value)) return "§cNaN§r";
+		if(value < 0) return "§cERROR§r";
+		switch(keyType)
+		{
+			case ENERGY_BUFFER:
+			case ENERGY_INTAKE:
+			case SPEED:
+			case AREA:
+			case AMOUNT:
+				return value > 1.0f ? "§a+"+((int)(value * 100))+"%§r" : "§c-"+((int)((1 - value) * 100))+"%§r";
+			case ENERGY_USE:
+				return value < 1.0f ? "§a-"+((int)((1 - value) * 100))+"%§r" : "§c+"+((int)(value * 100))+"%§r";
+		}
+		return "+" + value + "%";
+	}
+
+	private static Scaler getScalerFromCapKey(CapacitorKey key)
+	{
+		try
+		{
+			if(scalerFieldAccessor == null)
+			{
+				scalerFieldAccessor = CapacitorKey.class.getDeclaredField("scaler");
+				scalerFieldAccessor.setAccessible(true);
+			}
+			return (Scaler) scalerFieldAccessor.get(key);
+		}
+		catch (NoSuchFieldException | IllegalAccessException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private static Scaler guessScalerFromCapKeyType(CapacitorKeyType keyType)
+	{
+		switch(keyType)
+		{
+			case ENERGY_BUFFER:
+				return Scaler.Factory.POWER;
+			case ENERGY_INTAKE:
+				return Scaler.Factory.POWER;
+			case ENERGY_USE:
+				return Scaler.Factory.POWER;
+			case SPEED:
+				return null;
+			case AREA:
+				return null;
+			case AMOUNT:
+				return null;
+		}
+		return null;
 	}
 
 	private static String getLocalizedOwnerName(ModObject owner, ItemStack itemStack)
