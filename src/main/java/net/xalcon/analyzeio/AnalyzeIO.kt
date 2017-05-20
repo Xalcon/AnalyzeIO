@@ -1,16 +1,14 @@
 package net.xalcon.analyzeio
 
-import com.google.common.reflect.Reflection
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.SidedProxy
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
-import net.xalcon.analyzeio.common.CommonProxy
-import net.xalcon.analyzeio.common.init.ModItems
 import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.xalcon.analyzeio.common.CommonProxy
 import net.xalcon.analyzeio.common.GuiHandler
-
+import net.xalcon.analyzeio.common.init.ModItems
+import kotlin.jvm.JvmStatic
 
 @Mod(
         modid = AnalyzeIO.MODID,

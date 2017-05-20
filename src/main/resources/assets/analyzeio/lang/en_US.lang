@@ -1,7 +1,6 @@
 analyzeio.lootcaps.usage=§f§o<Hold ctrl>§r
 analyzeio.lootcaps.level=§fCapacitor Level %s
 
-
 analyzeio.lootcaps.all.energy_buffer_base=§fFallback Power buffer %s
 analyzeio.lootcaps.all.energy_use_base=§fFallback Power use %s
 analyzeio.lootcaps.all.energy_intake_base=§fFallback Power intake %s
@@ -21,3 +20,11 @@ analyzeio.lootcaps.area=§f%s Area %s
 analyzeio.lootcaps.amount=§f%s %s
 
 analyzeio.lootcaps.bonus_inactive=§cBonusses inactive - Level is 0!§c
+
+analyzeio.capacitor.base_level=Base Level
+analyzeio.capacitor.energy_buffer=Energy Buffer
+analyzeio.capacitor.energy_intake=Energy Intake
+analyzeio.capacitor.energy_use=Energy Use
+analyzeio.capacitor.speed=Speed
+analyzeio.capacitor.area=Area
+analyzeio.capacitor.amount=Amount

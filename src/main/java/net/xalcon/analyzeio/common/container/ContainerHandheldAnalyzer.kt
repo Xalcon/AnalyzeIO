@@ -20,7 +20,7 @@ class ContainerHandheldAnalyzer(playerIn:EntityPlayer) : Container()
     val playerInvenory : InventoryPlayer = playerIn.inventory
     var analyzer:ItemStack
 
-    fun getContentHeight() = 128
+    fun getContentHeight() = 136
 
     init
     {
@@ -36,7 +36,7 @@ class ContainerHandheldAnalyzer(playerIn:EntityPlayer) : Container()
         val cap = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: throw UnsupportedOperationException("Something went wrong! Analyzer has no inventory!")
 
         this.bindPlayerInventory()
-        this.addSlotToContainer(SlotItemHandler(cap, 0, 10, 10))
+        this.addSlotToContainer(SlotItemHandler(cap, 0, 8, 8))
     }
 
 
