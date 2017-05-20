@@ -1,0 +1,16 @@
+[
+{
+  "modid": "analyzeio",
+  "name": "AnalyzeIO",
+  "description": "Client-side mod which shows the modifiers from EnderIO loot capacitors in the tooltip",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Xalcon"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

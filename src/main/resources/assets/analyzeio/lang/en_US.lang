@@ -1,0 +1,15 @@
+analyzeio.lootcaps.usage=§f§o<Hold ctrl>§r
+analyzeio.lootcaps.level=§fCapacitor Level §a%s§r
+analyzeio.lootcaps.all.energy_buffer=§fAll Machines: §rPower buffer §a+%s%%§r
+analyzeio.lootcaps.all.energy_intake=§fAll Machines: §rPower intake §a+%s%%§r
+analyzeio.lootcaps.all.energy_use=§fAll Machines: §rPower use §c+%s%%§r
+analyzeio.lootcaps.all.speed=§fAll Machines: §rSpeed §a+%s%%§r
+analyzeio.lootcaps.all.area=§fAll Machines: §rArea §a+%s%%§r
+analyzeio.lootcaps.all.amount=§fAll Machines: §a+%s%%§r
+
+analyzeio.lootcaps.energy_buffer=§f%s:§r Power buffer §a+%s%%§r
+analyzeio.lootcaps.energy_intake=§f%s:§r Power intake §a+%s%%§r
+analyzeio.lootcaps.energy_use=§f%s:§r Power use §c+%s%%§r
+analyzeio.lootcaps.speed=§f%s:§r Speed §a+%s%%§r
+analyzeio.lootcaps.area=§f%s:§r Area §a+%s%%§r
+analyzeio.lootcaps.amount=§f%s:§r §a+%s%%§r

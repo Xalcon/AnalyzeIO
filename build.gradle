@@ -1,0 +1,102 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+//Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+
+def username = project.hasProperty('dev_username') ? dev_username : "mcdev"
+
+def build_number = getBuildNumber()
+
+version = "${mc_version}-${version_major}.${version_minor}.${version_patch}.${build_number}"
+group = package_group // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = mod_id
+
+sourceCompatibility = targetCompatibility = "1.8" // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.8"
+}
+
+minecraft {
+    version = mc_version + "-" + forge_version
+    runDir = "run"
+
+    clientRunArgs += "--username=${username}"
+    
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = mcp_mappings
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+	replace '@VERSION@', project.version
+    replace '@BUILD_NUMBER@', getBuildNumber()
+}
+
+repositories {
+  maven {
+    name 'JEI'
+	url 'http://dvs1.progwml6.com/files/maven'
+  }
+  maven {
+    name 'Hwyla'
+	url 'http://tehnut.info/maven'
+  }
+  maven {
+    name 'EnderIO'
+	url 'http://maven.tterrag.com'
+  }
+}
+
+
+dependencies {
+	deobfCompile "mezz.jei:jei_${mc_version}:${jei_version}:api"
+	deobfCompile ("com.enderio.core:EnderCore:${mc_version}-${endercore_version}") { transitive = false }
+	deobfCompile ("com.enderio:EnderIO:${mc_version}-${enderio_version}") { transitive = false }
+	compile "mcp.mobius.waila:Hwyla:${hwyla_version}:api"
+	
+	runtime "mezz.jei:jei_${mc_version}:${jei_version}"
+    runtime "mcp.mobius.waila:Hwyla:${hwyla_version}"
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else except the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+	
+	// move access transformers configs to META-INF folder
+	rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+jar {
+	manifest {
+	    attributes 'FMLAT': 'ecotec_at.cfg'
+	}
+	exclude ("**/thumbs.db")
+	exclude ("**/Thumbs.db")
+	exclude ("**/*.psd")
+}
+
+static def getBuildNumber() {
+    return "${System.env.BUILD_NUMBER_PREFIX ?: ""}${System.env.BUILD_NUMBER ?: "CUSTOM"}"
+}
