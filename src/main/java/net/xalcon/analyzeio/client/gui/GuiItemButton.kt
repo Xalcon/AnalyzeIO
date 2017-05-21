@@ -6,10 +6,13 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.resources.I18n
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.client.config.GuiUtils
+import net.xalcon.analyzeio.AnalyzeIO
 
 class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifier:String, val parent: GuiHandheldAnalyzer) : GuiButton(buttonId, x, y, 18, 18, "")
 {
+    val GUI_TEXTURE : ResourceLocation = ResourceLocation(AnalyzeIO.MODID, "textures/gui/gui_base.png")
     var isActive:Boolean = false
 
     init
@@ -34,16 +37,15 @@ class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifi
         if (this.visible)
         {
             GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
-            mc.textureManager.bindTexture(BUTTON_TEXTURES)
+            mc.textureManager.bindTexture(GUI_TEXTURE)
             GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height
-            val i = if(this.hovered) 2 else if(this.isActive) 1 else 0
+            val i = if(this.hovered) 2 else if(this.isActive) 1 else if(this.parent.isMachineAffected(this.identifier)) 3 else 0
 
             GlStateManager.enableBlend()
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO)
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA)
-            this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height)
-            this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height)
+            this.drawTexturedModalRect(this.xPosition, this.yPosition, 176, 44 + i * 18, 18, 18)
             RenderHelper.enableGUIStandardItemLighting()
             GlStateManager.enableDepth()
             mc.renderItem.zLevel = 1f

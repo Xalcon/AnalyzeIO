@@ -1,14 +1,12 @@
 package net.xalcon.analyzeio.client.gui
 
 import crazypants.enderio.ModObject
-import crazypants.enderio.capacitor.CapacitorKey
-import crazypants.enderio.capacitor.CapacitorKeyType
+import crazypants.enderio.capacitor.*
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.resources.I18n
 import net.minecraft.inventory.Slot
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.items.CapabilityItemHandler
@@ -24,8 +22,16 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         val PLAYER_INVENTORY_HEIGHT = 18 * 4 + 4
         val GUI_BORDER_WIDTH = 7
         val GUI_TEXTURE : ResourceLocation = ResourceLocation(AnalyzeIO.MODID, "textures/gui/gui_base.png")
+        val MACHINE_BLACKLIST = hashSetOf(
+                ModObject.blockTransceiver,
+                ModObject.blockBuffer,
+                ModObject.blockWeatherObelisk,
+                ModObject.blockPowerMonitor,
+                ModObject.blockPowerMonitorv2,
+                ModObject.blockInventoryPanelSensor)
     }
 
+    // missing from the mappings: Relocator Obelisk, Inhibitor Obelisk
     val machineMap:Map<String, List<CapacitorKey>> = CapacitorKey.values().groupBy { k -> k.owner.unlocalisedName }.toMap()
     val defaultTypes:List<CapacitorKeyType> = arrayListOf(CapacitorKeyType.ENERGY_BUFFER, CapacitorKeyType.ENERGY_INTAKE, CapacitorKeyType.ENERGY_USE)
 
@@ -40,7 +46,7 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         super.initGui()
         var id = 0
         val guiLeft = (this.width - this.xSize) / 2
-        for((machine, entries) in CapacitorKey.values().groupBy { k -> k.owner })
+        for((machine, entries) in CapacitorKey.values().filter{ k -> !MACHINE_BLACKLIST.contains(k.owner) }.groupBy { k -> k.owner })
         {
             if(machine.block == null) continue
             this.addButton(GuiItemButton(id, guiLeft + 7 + (id % 9) * 18, 112 + 18 * (id / 9), ItemStack(machine.block), machine.unlocalisedName, this))
@@ -53,6 +59,24 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         this.drawTexturedModalRect(slot.xPos - 1, slot.yPos - 1, 176, 0, 18, 18)
     }
 
+    fun isMachineAffected(identifier:String):Boolean
+    {
+        if(this.container.analyzer.isEmpty()) return false
+        val itemHandler = this.container.analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return false
+        val itemStack = itemHandler.getStackInSlot(0)
+        if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return false
+
+        val entries = this.machineMap[identifier]?.map { c -> c.getName() }?.toHashSet() ?: return false
+
+        val tag = itemStack.tagCompound?.getCompoundTag("eiocap") ?: return false
+        for(key in tag.keySet)
+        {
+            if(entries.contains(key))
+                return true
+        }
+        return false
+    }
+
     override fun drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int)
     {
         if(this.container.analyzer.isEmpty()) return
@@ -60,14 +84,14 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         val itemStack = itemHandler.getStackInSlot(0)
         if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return
 
+        val capData:ICapacitorData = CapacitorHelper.getCapacitorDataFromItemStack(itemStack)
         val activeButton = this.buttonList.firstOrNull { b -> b is GuiItemButton && b.isActive } as? GuiItemButton
-        val keys:List<CapacitorKeyType> = if(activeButton != null) this.machineMap[activeButton.identifier]?.map { c -> c.valueType } ?: this.defaultTypes else this.defaultTypes
+        val keys:List<CapacitorKey>? = if(activeButton != null) this.machineMap[activeButton.identifier] else null
 
         this.mc.renderItem.renderItemAndEffectIntoGUI(ItemStack(ModObject.itemBasicCapacitor.item, 1, 0), 104, 8)
         this.mc.renderItem.renderItemAndEffectIntoGUI(ItemStack(ModObject.itemBasicCapacitor.item, 1, 1), 122, 8)
         this.mc.renderItem.renderItemAndEffectIntoGUI(ItemStack(ModObject.itemBasicCapacitor.item, 1, 2), 140, 8)
         this.drawHorizontalLine(93, 165, 24, 0xFF606060.toInt())
-        this.drawVerticalLine(93, 24, 98, 0xFF606060.toInt())
         this.drawVerticalLine(111, 24, 98, 0xFFA0A0A0.toInt())
         this.drawVerticalLine(129, 24, 98, 0xFFA0A0A0.toInt())
         this.drawVerticalLine(147, 24, 98, 0xFFA0A0A0.toInt())
@@ -76,17 +100,48 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
         this.fontRendererObj.drawString(I18n.format("analyzeio.capacitor.base_level"), 8, 28, 0x404040)
         var offset = 28
+        val level:Int = itemStack.tagCompound?.getCompoundTag("eiocap")?.getInteger("level") ?: capData.baseLevel
+
+        if(capData.baseLevel > 0)
+        {
+            Gui.drawRect(93, offset + 2, (93 + 18 * level), offset + 6, 0xFFCC4040.toInt())
+        }
 
         for (type in CapacitorKeyType.values())
         {
             offset += 10
-            val hasKey = keys.contains(type)
-            this.fontRendererObj.drawString(I18n.format("analyzeio.capacitor.${type.getName()}"), 8, offset, if(hasKey) 0x404040 else 0xA0A0A0)
-            if(hasKey)
+
+            var color:Int = 0xA0A0A0
+            var barColor:Int = 0xFFA0A0A0.toInt()
+            var f:Float = level.toFloat()
+
+            if(keys != null)
             {
-                Gui.drawRect(111, offset + 2, 111 + 20, offset + 6, 0xFFFF6666.toInt())
+                val key = keys.lastOrNull { k -> k.valueType == type }
+                if(key != null)
+                {
+                    val lv1 = DefaultCapacitorData.BASIC_CAPACITOR.getUnscaledValue(key)
+                    val lv2 = DefaultCapacitorData.ACTIVATED_CAPACITOR.getUnscaledValue(key)
+                    val lv3 = DefaultCapacitorData.ENDER_CAPACITOR.getUnscaledValue(key)
+                    val lvC = capData.getUnscaledValue(key)
+                    f = when
+                    {
+                        lvC > lv3 -> lvC / lv3 * 3
+                        lvC > lv2 -> lvC / lv2 * 2
+                        else -> lvC / lv1 * 1
+                    }
+
+                    color = 0x404040
+
+                    if(level > 0)
+                        barColor = 0xFFCC4040.toInt()
+                }
             }
+            Gui.drawRect(93, offset + 2, (93 + 18 * f).toInt(), offset + 6, barColor)
+            this.fontRendererObj.drawString(I18n.format("analyzeio.capacitor.${type.getName()}"), 8, offset, color)
         }
+
+        this.drawVerticalLine(93, 24, 98, 0xFF606060.toInt())
 
         val button = this.buttonList.firstOrNull { b -> b.isMouseOver }
         if(button is GuiItemButton)
