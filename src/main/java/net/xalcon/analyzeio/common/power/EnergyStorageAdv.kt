@@ -13,10 +13,31 @@ open class EnergyStorageAdv : EnergyStorage, INBTSerializable<NBTBase>
 
     fun useEnegery(amount:Int)
     {
+        val old = this.energy
+
         if(this.energy > amount)
             this.energy -= amount
         else
             this.energy = 0
+
+        if(old != this.energy)
+            this.onContentsChanged()
+    }
+
+    override fun extractEnergy(maxExtract: Int, simulate: Boolean): Int
+    {
+        val amount = super.extractEnergy(maxExtract, simulate)
+        if(amount > 0)
+            this.onContentsChanged()
+        return amount
+    }
+
+    override fun receiveEnergy(maxReceive: Int, simulate: Boolean): Int
+    {
+        val amount = super.receiveEnergy(maxReceive, simulate)
+        if(amount > 0)
+            this.onContentsChanged()
+        return amount
     }
 
     override fun deserializeNBT(nbt: NBTBase)
@@ -28,4 +49,6 @@ open class EnergyStorageAdv : EnergyStorage, INBTSerializable<NBTBase>
     {
         return CapabilityEnergy.ENERGY.storage.writeNBT(CapabilityEnergy.ENERGY, this, null)
     }
+
+    open fun onContentsChanged() { }
 }

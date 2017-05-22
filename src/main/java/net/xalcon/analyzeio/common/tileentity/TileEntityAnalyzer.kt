@@ -31,32 +31,18 @@ class TileEntityAnalyzer : TileEntity(), ITickable
 
     private val energy: EnergyStorageAdv = object : EnergyStorageAdv(32000, 512, 0)
     {
-        override fun extractEnergy(maxExtract: Int, simulate: Boolean): Int
+        override fun onContentsChanged()
         {
-            if(!simulate)
-            {
-                val state = this@TileEntityAnalyzer.getWorld().getBlockState(this@TileEntityAnalyzer.getPos())
-                this@TileEntityAnalyzer.getWorld().notifyBlockUpdate(this@TileEntityAnalyzer.getPos(), state, state, 3)
-                this@TileEntityAnalyzer.markDirty()
-            }
-            return super.extractEnergy(maxExtract, simulate)
-        }
-
-        override fun receiveEnergy(maxReceive: Int, simulate: Boolean): Int
-        {
-            if(!simulate)
-            {
-                val state = this@TileEntityAnalyzer.getWorld().getBlockState(this@TileEntityAnalyzer.getPos())
-                this@TileEntityAnalyzer.getWorld().notifyBlockUpdate(this@TileEntityAnalyzer.getPos(), state, state, 3)
-                this@TileEntityAnalyzer.markDirty()
-            }
-            return super.receiveEnergy(maxReceive, simulate)
+            val state = this@TileEntityAnalyzer.getWorld().getBlockState(this@TileEntityAnalyzer.getPos())
+            this@TileEntityAnalyzer.getWorld().notifyBlockUpdate(this@TileEntityAnalyzer.getPos(), state, state, 3)
+            this@TileEntityAnalyzer.markDirty()
         }
     }
 
 
     override fun update()
     {
+        if(this.getWorld().isRemote) return
         if(!this.inventory.getStackInSlot(0).isEmpty())
         {
             this.itemInSlotTime++
