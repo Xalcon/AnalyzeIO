@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
 import net.xalcon.analyzeio.common.CommonProxy
 import net.xalcon.analyzeio.common.GuiHandler
+import net.xalcon.analyzeio.common.init.ModBlocks
 import net.xalcon.analyzeio.common.init.ModItems
 import kotlin.jvm.JvmStatic
 
@@ -33,6 +34,7 @@ object AnalyzeIO
     @Mod.EventHandler
     fun preInit(event: FMLPreInitializationEvent)
     {
+        ModBlocks.init()
         ModItems.init()
     }
 

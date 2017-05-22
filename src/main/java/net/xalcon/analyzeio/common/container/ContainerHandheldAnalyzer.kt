@@ -11,34 +11,33 @@ import net.xalcon.analyzeio.common.init.ModItems
 import net.xalcon.analyzeio.compat.isEmpty
 import java.lang.UnsupportedOperationException
 
-class ContainerHandheldAnalyzer(playerIn:EntityPlayer) : Container()
+class ContainerHandheldAnalyzer(val player:EntityPlayer) : Container()
 {
     private val SLOT_SIZE = 18
     private val ACTION_BAR_Y_OFFSET = 58
     private val BORDER_OFFSET = 8
 
-    val playerInvenory : InventoryPlayer = playerIn.inventory
-    var analyzer:ItemStack
+    val playerInvenory : InventoryPlayer = player.inventory
 
     fun getContentHeight() = 136
 
     init
     {
-        val mainHand:ItemStack? = playerIn.heldItemMainhand
-        val offHand:ItemStack? = playerIn.heldItemOffhand
-        if(!mainHand.isEmpty() && mainHand!!.item == ModItems.handheldAnalyzer)
-            analyzer = mainHand
-        else if(!offHand.isEmpty() && offHand!!.item == ModItems.handheldAnalyzer)
-            analyzer = offHand
-        else
-            throw UnsupportedOperationException("analyzer not in mainhand or offhand!")
-
+        val analyzer = getAnalyzer() ?: throw UnsupportedOperationException("analyzer not in mainhand or offhand!")
         val cap = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: throw UnsupportedOperationException("Something went wrong! Analyzer has no inventory!")
 
         this.bindPlayerInventory()
         this.addSlotToContainer(SlotItemHandler(cap, 0, 8, 8))
     }
 
+    fun getAnalyzer():ItemStack?
+    {
+        return if(!player.heldItemMainhand.isEmpty() && player.heldItemMainhand!!.item == ModItems.handheldAnalyzer)
+            player.heldItemMainhand
+        else if(!player.heldItemOffhand.isEmpty() && player.heldItemOffhand!!.item == ModItems.handheldAnalyzer)
+            player.heldItemOffhand
+        else null
+    }
 
     private fun bindPlayerInventory()
     {

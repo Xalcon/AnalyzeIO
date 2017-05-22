@@ -28,3 +28,6 @@ analyzeio.capacitor.energy_use=Energy Use
 analyzeio.capacitor.speed=Speed
 analyzeio.capacitor.area=Area
 analyzeio.capacitor.amount=Amount
+
+analyzeio.analyzer.out_of_energy=§cOut of energyGetter!§r
+analyzeio.machine.tooltip.power_gauge=%s / %s

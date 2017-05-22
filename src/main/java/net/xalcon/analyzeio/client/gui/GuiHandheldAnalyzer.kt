@@ -11,8 +11,13 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.items.CapabilityItemHandler
 import net.xalcon.analyzeio.AnalyzeIO
+import net.xalcon.analyzeio.client.gui.widgets.Widget
 import net.xalcon.analyzeio.common.container.ContainerHandheldAnalyzer
 import net.xalcon.analyzeio.compat.isEmpty
+import java.util.ArrayList
+import net.minecraftforge.energy.CapabilityEnergy
+import net.xalcon.analyzeio.client.gui.widgets.WidgetPowerGauge
+import jdk.nashorn.internal.objects.NativeArray.forEach
 
 class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContainer(container)
 {
@@ -32,13 +37,16 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
     }
 
     // missing from the mappings: Relocator Obelisk, Inhibitor Obelisk
-    val machineMap:Map<String, List<CapacitorKey>> = CapacitorKey.values().groupBy { k -> k.owner.unlocalisedName }.toMap()
-    val defaultTypes:List<CapacitorKeyType> = arrayListOf(CapacitorKeyType.ENERGY_BUFFER, CapacitorKeyType.ENERGY_INTAKE, CapacitorKeyType.ENERGY_USE)
+    val machineMap:Map<String, List<CapacitorKey>> = CapacitorKey.values().groupBy { k -> k.owner.unlocalisedName }
+    var widgets: ArrayList<Widget> = ArrayList()
 
     init
     {
         this.xSize = PLAYER_INVENTORY_WIDTH + 2 * GUI_BORDER_WIDTH;
         this.ySize = GUI_BORDER_WIDTH * 2 + PLAYER_INVENTORY_HEIGHT + this.container.getContentHeight()
+        val analyzer = this.container.getAnalyzer()
+        if(!analyzer.isEmpty() && analyzer!!.hasCapability(CapabilityEnergy.ENERGY, null))
+            this.widgets.add(WidgetPowerGauge(32, 9, { this.container.getAnalyzer()!!.getCapability(CapabilityEnergy.ENERGY, null) }, 0xFF00FFFF.toInt(), this))
     }
 
     override fun initGui()
@@ -61,26 +69,27 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
     fun isMachineAffected(identifier:String):Boolean
     {
-        if(this.container.analyzer.isEmpty()) return false
-        val itemHandler = this.container.analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return false
+        val analyzer = this.container.getAnalyzer() ?: return false
+        val itemHandler = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return false
         val itemStack = itemHandler.getStackInSlot(0)
         if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return false
 
         val entries = this.machineMap[identifier]?.map { c -> c.getName() }?.toHashSet() ?: return false
 
         val tag = itemStack.tagCompound?.getCompoundTag("eiocap") ?: return false
-        for(key in tag.keySet)
-        {
-            if(entries.contains(key))
-                return true
-        }
-        return false
+        return tag.keySet.any { entries.contains(it) }
     }
 
     override fun drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int)
     {
-        if(this.container.analyzer.isEmpty()) return
-        val itemHandler = this.container.analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return
+        val analyzer = this.container.getAnalyzer() ?: return
+        val energy = analyzer.getCapability(CapabilityEnergy.ENERGY, null) ?: return
+        if(energy.energyStored <= 0)
+        {
+            this.fontRendererObj.drawString(I18n.format("${AnalyzeIO.MODID}.analyzer.out_of_energy"), 8f, 28f, 0, true)
+            return
+        }
+        val itemHandler = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return
         val itemStack = itemHandler.getStackInSlot(0)
         if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return
 
@@ -143,6 +152,12 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
         this.drawVerticalLine(93, 24, 98, 0xFF606060.toInt())
 
+        val relMouseX = mouseX - this.guiLeft
+        val relMouseY = mouseY - this.guiTop
+
+        this.widgets.forEach { w -> w.renderWidgetForeground() }
+        this.widgets.forEach { w -> w.handleMouseOver(relMouseX, relMouseY) }
+
         val button = this.buttonList.firstOrNull { b -> b.isMouseOver }
         if(button is GuiItemButton)
             button.drawToolTip(this.mc, mouseX - guiLeft, mouseY - guiTop)
@@ -159,6 +174,7 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         GlStateManager.pushMatrix()
         GlStateManager.translate(this.guiLeft.toDouble(), this.guiTop.toDouble(), 0.0)
         this.container.inventorySlots.forEach({ s -> this.renderItemSlot(s) })
+        this.widgets.forEach { w -> w.renderWidgetBackground() }
         GlStateManager.popMatrix()
     }
 
