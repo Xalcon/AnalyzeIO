@@ -36,12 +36,6 @@ public class ItemTooltipEventHandler
 		int level = capNbt.getInteger("level");
 		event.getToolTip().add(I18n.format("analyzeio.lootcaps.level", level > 0 ? "§a"+level+"§r" : "§c"+level+"§r"));
 		ICapacitorData data = CapacitorHelper.getCapacitorDataFromItemStack(event.getItemStack());
-		if(level > 0)
-		{
-			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_buffer_base", formatBonus(CapacitorKeyType.ENERGY_BUFFER, Scaler.Factory.POWER.scaleValue(level))));
-			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_use_base", formatBonus(CapacitorKeyType.ENERGY_USE, Scaler.Factory.POWER.scaleValue(level))));
-			event.getToolTip().add(I18n.format("analyzeio.lootcaps.all.energy_intake_base", formatBonus(CapacitorKeyType.ENERGY_INTAKE, Scaler.Factory.POWER.scaleValue(level))));
-		}
 		for(String key : capNbt.getKeySet())
 		{
 			if("level".equals(key)) continue;
