@@ -1,11 +1,11 @@
-package net.xalcon.analyzeio.common.items
+package net.xalcon.analyzeio.common.power
 
 import net.minecraft.nbt.NBTBase
 import net.minecraftforge.common.util.INBTSerializable
 import net.minecraftforge.energy.CapabilityEnergy
 import net.minecraftforge.energy.EnergyStorage
 
-class EnergyStorageAdv : EnergyStorage, INBTSerializable<NBTBase>
+open class EnergyStorageAdv : EnergyStorage, INBTSerializable<NBTBase>
 {
     constructor(capacity: Int) : super(capacity)
     constructor(capacity: Int, maxTransfer: Int) : super(capacity, maxTransfer)

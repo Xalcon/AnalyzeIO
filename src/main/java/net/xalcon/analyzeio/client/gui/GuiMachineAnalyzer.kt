@@ -9,17 +9,16 @@ import net.minecraft.client.resources.I18n
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.energy.CapabilityEnergy
 import net.minecraftforge.items.CapabilityItemHandler
 import net.xalcon.analyzeio.AnalyzeIO
 import net.xalcon.analyzeio.client.gui.widgets.Widget
-import net.xalcon.analyzeio.common.container.ContainerHandheldAnalyzer
-import net.xalcon.analyzeio.compat.isEmpty
-import java.util.ArrayList
-import net.minecraftforge.energy.CapabilityEnergy
 import net.xalcon.analyzeio.client.gui.widgets.WidgetPowerGauge
-import jdk.nashorn.internal.objects.NativeArray.forEach
+import net.xalcon.analyzeio.common.container.ContainerMachineAnalyzer
+import net.xalcon.analyzeio.compat.isEmpty
+import java.util.*
 
-class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContainer(container)
+class GuiMachineAnalyzer(val container: ContainerMachineAnalyzer) : GuiContainer(container)
 {
     companion object
     {
@@ -44,9 +43,7 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
     {
         this.xSize = PLAYER_INVENTORY_WIDTH + 2 * GUI_BORDER_WIDTH
         this.ySize = GUI_BORDER_WIDTH * 2 + PLAYER_INVENTORY_HEIGHT + this.container.getContentHeight()
-        val analyzer = this.container.getAnalyzer()
-        if(!analyzer.isEmpty() && analyzer!!.hasCapability(CapabilityEnergy.ENERGY, null))
-            this.widgets.add(WidgetPowerGauge(32, 9, { this.container.getAnalyzer()!!.getCapability(CapabilityEnergy.ENERGY, null) }, 0xFF00FFFF.toInt(), this))
+        this.widgets.add(WidgetPowerGauge(32, 9, { this.container.tile.getCapability(CapabilityEnergy.ENERGY, null) }, 0xFF00FFFF.toInt(), this))
     }
 
     override fun initGui()
@@ -69,8 +66,7 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
     fun isMachineAffected(button:GuiItemButton):Boolean
     {
-        val analyzer = this.container.getAnalyzer() ?: return false
-        val itemHandler = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return false
+        val itemHandler = this.container.tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
         val itemStack = itemHandler.getStackInSlot(0)
         if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return false
 
@@ -82,20 +78,36 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
     override fun drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int)
     {
-        val analyzer = this.container.getAnalyzer() ?: return
-        val energy = analyzer.getCapability(CapabilityEnergy.ENERGY, null) ?: return
-        if(energy.energyStored <= 0)
+
+        val energy = this.container.tile.getCapability(CapabilityEnergy.ENERGY, null) ?: return
+        if(energy.energyStored > 0)
+        {
+            renderAnalysis()
+        }
+        else
         {
             this.fontRendererObj.drawString(I18n.format("${AnalyzeIO.MODID}.analyzer.out_of_energy"), 8f, 28f, 0, true)
-            return
         }
-        val itemHandler = analyzer.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return
-        val itemStack = itemHandler.getStackInSlot(0)
-        if(itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return
 
-        val capData:ICapacitorData = CapacitorHelper.getCapacitorDataFromItemStack(itemStack)
+        val relMouseX = mouseX - this.guiLeft
+        val relMouseY = mouseY - this.guiTop
+        this.widgets.forEach { w -> w.renderWidgetForeground() }
+        this.widgets.forEach { w -> w.handleMouseOver(relMouseX, relMouseY) }
+
+        val button = this.buttonList.firstOrNull { b -> b.isMouseOver }
+        if(button is GuiItemButton)
+            button.drawToolTip(this.mc, relMouseX, relMouseY)
+    }
+
+    private fun renderAnalysis()
+    {
+        val itemHandler = this.container.tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null) ?: return
+        val itemStack = itemHandler.getStackInSlot(0)
+        if (itemStack.isEmpty() || itemStack.item != ModObject.itemBasicCapacitor.item) return
+
+        val capData: ICapacitorData = CapacitorHelper.getCapacitorDataFromItemStack(itemStack)
         val activeButton = this.buttonList.firstOrNull { b -> b is GuiItemButton && b.isActive } as? GuiItemButton
-        val keys:List<CapacitorKey>? = if(activeButton != null) this.machineMap[activeButton.identifier] else null
+        val keys: List<CapacitorKey>? = if (activeButton != null) this.machineMap[activeButton.identifier] else null
 
         this.mc.renderItem.renderItemAndEffectIntoGUI(ItemStack(ModObject.itemBasicCapacitor.item, 1, 0), 104, 8)
         this.mc.renderItem.renderItemAndEffectIntoGUI(ItemStack(ModObject.itemBasicCapacitor.item, 1, 1), 122, 8)
@@ -109,9 +121,9 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
         this.fontRendererObj.drawString(I18n.format("analyzeio.capacitor.base_level"), 8, 28, 0x404040)
         var offset = 28
-        val level:Int = itemStack.tagCompound?.getCompoundTag("eiocap")?.getInteger("level") ?: capData.baseLevel
+        val level: Int = itemStack.tagCompound?.getCompoundTag("eiocap")?.getInteger("level") ?: capData.baseLevel
 
-        if(capData.baseLevel > 0)
+        if (capData.baseLevel > 0)
         {
             Gui.drawRect(93, offset + 2, (93 + 18 * level), offset + 6, 0xFFCC4040.toInt())
         }
@@ -120,14 +132,14 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         {
             offset += 10
 
-            var color:Int = 0xA0A0A0
-            var barColor:Int = 0xFFA0A0A0.toInt()
-            var f:Float = level.toFloat()
+            var color: Int = 0xA0A0A0
+            var barColor: Int = 0xFFA0A0A0.toInt()
+            var f: Float = level.toFloat()
 
-            if(keys != null)
+            if (keys != null)
             {
                 val key = keys.lastOrNull { k -> k.valueType == type }
-                if(key != null)
+                if (key != null)
                 {
                     val lv1 = DefaultCapacitorData.BASIC_CAPACITOR.getUnscaledValue(key)
                     val lv2 = DefaultCapacitorData.ACTIVATED_CAPACITOR.getUnscaledValue(key)
@@ -142,7 +154,7 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
 
                     color = 0x404040
 
-                    if(level > 0)
+                    if (level > 0)
                         barColor = 0xFFCC4040.toInt()
                 }
             }
@@ -151,16 +163,6 @@ class GuiHandheldAnalyzer(val container: ContainerHandheldAnalyzer) : GuiContain
         }
 
         this.drawVerticalLine(93, 24, 98, 0xFF606060.toInt())
-
-        val relMouseX = mouseX - this.guiLeft
-        val relMouseY = mouseY - this.guiTop
-
-        this.widgets.forEach { w -> w.renderWidgetForeground() }
-        this.widgets.forEach { w -> w.handleMouseOver(relMouseX, relMouseY) }
-
-        val button = this.buttonList.firstOrNull { b -> b.isMouseOver }
-        if(button is GuiItemButton)
-            button.drawToolTip(this.mc, mouseX - guiLeft, mouseY - guiTop)
     }
 
     override fun drawGuiContainerBackgroundLayer(partialTicks: Float, mouseX: Int, mouseY: Int)

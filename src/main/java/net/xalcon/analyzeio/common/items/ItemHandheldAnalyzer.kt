@@ -19,6 +19,7 @@ import net.minecraftforge.energy.EnergyStorage
 import net.minecraftforge.items.CapabilityItemHandler
 import net.minecraftforge.items.ItemStackHandler
 import net.xalcon.analyzeio.AnalyzeIO
+import net.xalcon.analyzeio.common.power.EnergyStorageAdv
 import net.xalcon.analyzeio.compat.isEmpty
 
 class ItemHandheldAnalyzer : Item()

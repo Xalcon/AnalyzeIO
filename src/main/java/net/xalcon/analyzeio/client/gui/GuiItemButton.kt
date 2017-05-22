@@ -2,6 +2,7 @@ package net.xalcon.analyzeio.client.gui
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.resources.I18n
@@ -10,7 +11,11 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.client.config.GuiUtils
 import net.xalcon.analyzeio.AnalyzeIO
 
-class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifier:String, val parent: GuiHandheldAnalyzer) : GuiButton(buttonId, x, y, 18, 18, "")
+class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifier:String,
+                    val parent: GuiScreen,
+                    val onButtonClicked: (button:GuiItemButton) -> Unit,
+                    val isButtonSpecial: (button:GuiItemButton) -> Boolean)
+    : GuiButton(buttonId, x, y, 18, 18, "")
 {
     val GUI_TEXTURE : ResourceLocation = ResourceLocation(AnalyzeIO.MODID, "textures/gui/gui_base.png")
     var isActive:Boolean = false
@@ -24,7 +29,7 @@ class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifi
         if(super.mousePressed(mc, mouseX, mouseY))
         {
             val wasActive = this.isActive
-            parent.resetActiveButtons()
+            this.onButtonClicked(this)
             if(!wasActive)
                 this.isActive = true
             return true
@@ -40,7 +45,7 @@ class GuiItemButton(buttonId:Int, x:Int, y:Int, val item:ItemStack, val identifi
             mc.textureManager.bindTexture(GUI_TEXTURE)
             GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height
-            val i = if(this.hovered) 2 else if(this.isActive) 1 else if(this.parent.isMachineAffected(this.identifier)) 3 else 0
+            val i = if(this.hovered) 2 else if(this.isActive) 1 else if(this.isButtonSpecial(this)) 3 else 0
 
             GlStateManager.enableBlend()
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO)
