@@ -47,4 +47,37 @@ class ContainerMachineAnalyzer(val player:EntityPlayer, val tile:TileEntityAnaly
     {
         return true
     }
+
+    /**
+     * Take a stack from the specified inventory slot.
+     */
+    override fun transferStackInSlot(playerIn: EntityPlayer?, index: Int): ItemStack?
+    {
+        var itemstack: ItemStack? = null
+        val slot = this.inventorySlots[index]
+
+        if (slot != null && slot.hasStack)
+        {
+            val itemstack1 = slot.stack
+            itemstack = itemstack1!!.copy()
+
+            if (index in 0..35)
+            {
+                if (!this.mergeItemStack(itemstack1, 36, this.inventorySlots.size, true))
+                {
+                    return null
+                }
+            } else if (!this.mergeItemStack(itemstack1, 0, 35, false)) {
+                return null
+            }
+
+            if (itemstack1.stackSize == 0) {
+                slot.putStack(null as ItemStack?)
+            } else {
+                slot.onSlotChanged()
+            }
+        }
+
+        return itemstack
+    }
 }
