@@ -1,5 +1,6 @@
 package net.xalcon.analyzeio.common.tileentity
 
+import crazypants.enderio.ModObject
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.SPacketUpdateTileEntity
@@ -42,9 +43,23 @@ class TileEntityAnalyzer : TileEntity(), ITickable
 
     override fun update()
     {
-        if(this.getWorld().isRemote) return
-        if(!this.inventory.getStackInSlot(0).isEmpty())
+        val itemStack = this.inventory.getStackInSlot(0)
+        if(!itemStack.isEmpty() && itemStack.item == ModObject.itemBasicCapacitor.item)
         {
+            if(itemStack.metadata == 3 && itemStack.hasTagCompound() && this.energy.energyStored > 0)
+            {
+                val nbt = itemStack.tagCompound
+                if(nbt != null)
+                {
+                    val eiocap = nbt.getCompoundTag("eiocap")
+                    if(!eiocap.getBoolean("analyzed"))
+                    {
+                        eiocap.setBoolean("analyzed", true)
+                    }
+                }
+            }
+
+            if(this.getWorld().isRemote) return
             this.itemInSlotTime++
             if(this.itemInSlotTime % 5 == 0)
             {

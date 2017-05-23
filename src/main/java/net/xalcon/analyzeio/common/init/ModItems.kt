@@ -9,6 +9,6 @@ object ModItems
 
     fun init()
     {
-        AnalyzeIO.PROXY.register(this.handheldAnalyzer)
+        //AnalyzeIO.PROXY.register(this.handheldAnalyzer)
     }
 }

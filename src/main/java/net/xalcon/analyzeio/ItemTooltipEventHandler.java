@@ -24,11 +24,17 @@ public class ItemTooltipEventHandler
 	{
 		if(event.getItemStack().getItem() != ModObject.itemBasicCapacitor.getItem()) return;
 		NBTTagCompound itemNbt = event.getItemStack().getTagCompound();
-		if(itemNbt == null) return;
+		if(itemNbt == null || AnalyzeIOConfig.tooltip == 0) return;
 
 		if(!Keyboard.isKeyDown(Keyboard.KEY_LCONTROL))
 		{
 			event.getToolTip().add(I18n.format("analyzeio.lootcaps.usage"));
+			return;
+		}
+
+		if(AnalyzeIOConfig.tooltip == 2 && !isAnalyzed(itemNbt))
+		{
+			event.getToolTip().add(I18n.format("analyzeio.lootcaps.not_analyzed"));
 			return;
 		}
 
@@ -67,6 +73,11 @@ public class ItemTooltipEventHandler
 		{
 			event.getToolTip().add(I18n.format("analyzeio.lootcaps.bonus_inactive"));
 		}
+	}
+
+	private static boolean isAnalyzed(NBTTagCompound itemNbt)
+	{
+		return itemNbt.getCompoundTag("eiocap").getBoolean("analyzed");
 	}
 
 	static Field scalerFieldAccessor = null;

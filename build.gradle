@@ -43,10 +43,11 @@ minecraft {
     mappings = mcp_mappings
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 	replace '@VERSION@', project.version
-    replace '@BUILD_NUMBER@', getBuildNumber()
+    replace '@BUILD_NUMBER@', build_number
 }
 
 repositories {
+    jcenter()
     maven {
         name 'shadowfacts'
         url 'http://mvn.rx14.co.uk/shadowfacts/'
@@ -114,9 +115,6 @@ processResources {
 }
 
 jar {
-	manifest {
-	    attributes 'FMLAT': 'ecotec_at.cfg'
-	}
 	exclude ("**/thumbs.db")
 	exclude ("**/Thumbs.db")
 	exclude ("**/*.psd")

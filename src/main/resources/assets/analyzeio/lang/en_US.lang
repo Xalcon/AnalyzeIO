@@ -19,7 +19,8 @@ analyzeio.lootcaps.speed=§f%s Speed %s
 analyzeio.lootcaps.area=§f%s Area %s
 analyzeio.lootcaps.amount=§f%s %s
 
-analyzeio.lootcaps.bonus_inactive=§cBonusses inactive - Level is 0!§c
+analyzeio.lootcaps.bonus_inactive=§cBonusses inactive - Level is 0!§r
+analyzeio.lootcaps.not_analyzed=§cCapacitor not analyzed§r
 
 analyzeio.capacitor.base_level=Base Level
 analyzeio.capacitor.energy_buffer=Energy Buffer
@@ -29,5 +30,7 @@ analyzeio.capacitor.speed=Speed
 analyzeio.capacitor.area=Area
 analyzeio.capacitor.amount=Amount
 
-analyzeio.analyzer.out_of_energy=§cOut of energyGetter!§r
+analyzeio.analyzer.out_of_energy=§cOut of energy!§r
 analyzeio.machine.tooltip.power_gauge=%s / %s
+
+tile.analyzeio.blockAnalyzer.name=Capacitor Analyzer

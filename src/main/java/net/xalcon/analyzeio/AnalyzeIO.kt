@@ -9,6 +9,7 @@ import net.xalcon.analyzeio.common.CommonProxy
 import net.xalcon.analyzeio.common.GuiHandler
 import net.xalcon.analyzeio.common.init.ModBlocks
 import net.xalcon.analyzeio.common.init.ModItems
+import net.xalcon.analyzeio.common.init.ModRecipes
 import kotlin.jvm.JvmStatic
 
 @Mod(
@@ -23,7 +24,7 @@ object AnalyzeIO
     const val MODID = "analyzeio"
     const val MODNAME = "AnalyzeIO"
     const val VERSION = "@VERSION@"
-    const val DEPENDENCIES = "required-after:EnderIO@[1.10.2-3.1.190,)"
+    const val DEPENDENCIES = "required-after:forgelin@[1.4.2,);required-after:EnderIO@[1.10.2-3.1.183,);"
     const val ACCEPTED_MC_VERSIONS = "[1.10.2]"
     const val CLIENT_PROXY = "net.xalcon.analyzeio.client.ClientProxy"
     const val SERVER_PROXY = "net.xalcon.analyzeio.common.CommonProxy"
@@ -42,6 +43,7 @@ object AnalyzeIO
     fun init(event: FMLInitializationEvent)
     {
         PROXY.init(event)
+        ModRecipes.init()
         NetworkRegistry.INSTANCE.registerGuiHandler(this, GuiHandler)
     }
 
