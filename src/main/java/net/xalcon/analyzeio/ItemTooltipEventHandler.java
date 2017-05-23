@@ -15,8 +15,7 @@ import org.lwjgl.input.Keyboard;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
-@Mod.EventBusSubscriber
-@SideOnly(Side.CLIENT)
+//@Mod.EventBusSubscriber(Side.CLIENT)
 public class ItemTooltipEventHandler
 {
 	@SubscribeEvent
