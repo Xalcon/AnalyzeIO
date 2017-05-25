@@ -51,10 +51,11 @@ class GuiMachineAnalyzer(val container: ContainerMachineAnalyzer) : GuiContainer
         super.initGui()
         var id = 0
         val guiLeft = (this.width - this.xSize) / 2
+        val guiTop = (this.height - this.ySize) / 2
         for((machine, entries) in CapacitorKey.values().filter{ k -> !MACHINE_BLACKLIST.contains(k.owner) }.groupBy { k -> k.owner })
         {
             if(machine.block == null) continue
-            this.addButton(GuiItemButton(id, guiLeft + 7 + (id % 9) * 18, 112 + 18 * (id / 9), ItemStack(machine.block), machine.unlocalisedName, this, this::resetActiveButtons, this::isMachineAffected))
+            this.addButton(GuiItemButton(id, guiLeft + 7 + (id % 9) * 18, guiTop + 104 + 18 * (id / 9), ItemStack(machine.block), machine.unlocalisedName, this, this::resetActiveButtons, this::isMachineAffected))
             id++
         }
     }
