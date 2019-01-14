@@ -1,36 +1,13 @@
-analyzeio.lootcaps.usage=§f§o<Hold ctrl>§r
-analyzeio.lootcaps.level=§fCapacitor Level %s
+analyzeio.capacitor.usage=§f§o<Hold ctrl>§r
+analyzeio.capacitor.level=Capacitor Level
 
-analyzeio.lootcaps.all.energy_buffer_base=§fFallback Power buffer %s
-analyzeio.lootcaps.all.energy_use_base=§fFallback Power use %s
-analyzeio.lootcaps.all.energy_intake_base=§fFallback Power intake %s
-
-analyzeio.lootcaps.all.energy_buffer=§fAll Machines Power buffer %s
-analyzeio.lootcaps.all.energy_intake=§fAll Machines Power intake %s
-analyzeio.lootcaps.all.energy_use=§fAll Machines Power use %s
-analyzeio.lootcaps.all.speed=§fAll Machines Speed %s
-analyzeio.lootcaps.all.area=§fAll Machines Area %s
-analyzeio.lootcaps.all.amount=§fAll Machines %s
-
-analyzeio.lootcaps.energy_buffer=§f%s Power buffer %s
-analyzeio.lootcaps.energy_intake=§f%s Power intake %s
-analyzeio.lootcaps.energy_use=§f%s Power use %s
-analyzeio.lootcaps.speed=§f%s Speed %s
-analyzeio.lootcaps.area=§f%s Area %s
-analyzeio.lootcaps.amount=§f%s %s
-
-analyzeio.lootcaps.bonus_inactive=§cBonusses inactive - Level is 0!§r
-analyzeio.lootcaps.not_analyzed=§cCapacitor not analyzed§r
+analyzeio.capacitor.bonus_inactive=§cBonusses inactive - Level is 0!§r
+analyzeio.capacitor.not_analyzed=§cCapacitor not analyzed§r
 
 analyzeio.capacitor.base_level=Base Level
-analyzeio.capacitor.energy_buffer=Energy Buffer
-analyzeio.capacitor.energy_intake=Energy Intake
-analyzeio.capacitor.energy_use=Energy Use
-analyzeio.capacitor.speed=Speed
-analyzeio.capacitor.area=Area
-analyzeio.capacitor.amount=Amount
-
-analyzeio.analyzer.out_of_energy=§cOut of energy!§r
-analyzeio.machine.tooltip.power_gauge=%s / %s
-
-tile.analyzeio.blockAnalyzer.name=Capacitor Analyzer
+analyzeio.capacitor.generic.energy_buffer=Energy Buffer
+analyzeio.capacitor.generic.energy_intake=Energy Intake
+analyzeio.capacitor.generic.energy_use=Energy Use
+analyzeio.capacitor.generic.speed=Speed
+analyzeio.capacitor.generic.area=Area
+analyzeio.capacitor.generic.amount=Amount
